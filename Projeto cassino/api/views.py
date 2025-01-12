@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken 
 from decimal import Decimal
+import random
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -68,7 +69,9 @@ class DepositarView(APIView):
 
         saldo_account = request.user.bet_account
         saldo_account.deposit_balance(amount)
-        return Response({"Adicionado": amount}, status=status.HTTP_200_OK)
+        saldo_account.deposit_bonus(amount)
+
+        return Response({"Adicionado": amount+amount}, status=status.HTTP_200_OK)
     
 class SacarView(APIView):
     permission_classes = [IsAuthenticated]
@@ -76,7 +79,33 @@ class SacarView(APIView):
     def post(self, request):
         amount = request.data.get("amount")
 
+        try:
+            amount = Decimal(amount)
+
+        except:
+            return Response({"erro": "Algo deu errado"}, status=status.HTTP_400_BAD_REQUEST)
+
         saldo_account = request.user.bet_account
-        saldo_account.withdrawal_balance(amount)
-        return Response({"Sacado": amount})
-        
+
+        try:
+            res1 = saldo_account.withdrawal_balance(amount)
+
+            if res1 == True:
+                return Response({"Sacado": amount}, status=status.HTTP_200_OK)
+            else:
+                res = saldo_account.withdrawal_bonus(amount)
+
+                if res == True:
+                    return Response({"Sacado": amount}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "saldo insuficiente"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except:
+            return Response({"error": "saldo insuficiente"}, status=status.HTTP_400_BAD_REQUEST)
+
+class FogueteView(APIView):
+    def post(self, request):
+        amount = request.user.get("amount")
+
+        rand_number = random.randint(0, 10)
+

@@ -15,7 +15,7 @@ class BetAccount(models.Model):
         self.bonus += amount
         self.save()
 
-    def wthdrawal_bonus(self, amount):
+    def withdrawal_bonus(self, amount):
         if amount <= self.bonus:
             self.bonus -= amount
             self.save()
@@ -33,5 +33,6 @@ class BetAccount(models.Model):
             self.save()
             return True
         else:
+            print("aq")
             return False
     
